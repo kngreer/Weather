@@ -1,0 +1,157 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nathan's Weather</title>
+  <meta name="description" content="Weather.gov/NWS page showing current conditions, 12-hour charts, and extended forecast." />
+  <meta name="theme-color" content="#0f172a" />
+
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://api.weather.gov" crossorigin>
+  <link rel="dns-prefetch" href="https://api.weather.gov">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+  <!-- Meta CSP (GitHub Pages). Prefer HTTP headers (see _headers). -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; connect-src 'self' https://api.weather.gov; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests;">
+
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Weather for Round Rock, TX</h1>
+      <div class="sub">Current conditions • Family • Hourly • Extended</div>
+    </header>
+
+    <main>
+      <!-- Current Conditions -->
+      <section class="panel" aria-labelledby="current-title">
+        <div class="section-title">
+          <h2 id="current-title">Current Conditions</h2>
+          <div id="current-stamp" class="stamp" aria-live="polite"></div>
+        </div>
+        <div id="current" class="current">
+          <div class="tile">
+            <h3>Temperature</h3>
+            <div id="current-temp" class="big loading" aria-live="polite">Loading…</div>
+          </div>
+          <div class="tile">
+            <h3>Wind</h3>
+            <div id="current-wind" class="big loading" aria-live="polite">Loading…</div>
+          </div>
+          <div class="tile">
+            <h3>Humidity</h3>
+            <div id="current-humidity" class="big loading" aria-live="polite">Loading…</div>
+          </div>
+          <div class="tile">
+            <h3>Condition</h3>
+            <div id="current-desc" class="big loading">Loading…</div>
+          </div>
+        </div>
+        <div id="current-error" class="error is-hidden"></div>
+      </section>
+
+      <!-- Active Alerts -->
+      <section class="panel" id="alerts-panel" aria-labelledby="alerts-title">
+        <div class="section-title">
+          <h2 id="alerts-title">Active Alerts</h2>
+          <div id="alerts-stamp" class="stamp" aria-live="polite"></div>
+        </div>
+        <div id="alerts-list" aria-describedby="alerts-title"></div>
+        <div id="alerts-error" class="error is-hidden"></div>
+      </section>
+
+      <!-- Other locations -->
+      <section class="panel" aria-labelledby="other-title">
+        <div class="section-title">
+          <h2 id="other-title">Family's Locations – Current Conditions</h2>
+          <div class="legend-note">Temp, Condition, &amp; Wind</div>
+        </div>
+        <div class="location-grid">
+          <div class="loc-card" id="loc-evanston">
+            <h3>Evanston, WY</h3>
+            <div class="loc-row"><span>Temp</span><span id="evan-temp" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Condition</span><span id="evan-cond" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Wind</span><span id="evan-wind" class="loading">Loading…</span></div>
+            <div id="evan-error" class="error is-hidden"></div>
+          </div>
+          <div class="loc-card" id="loc-clinton">
+            <h3>Clinton, UT</h3>
+            <div class="loc-row"><span>Temp</span><span id="clint-temp" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Condition</span><span id="clint-cond" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Wind</span><span id="clint-wind" class="loading">Loading…</span></div>
+            <div id="clint-error" class="error is-hidden"></div>
+          </div>
+          <div class="loc-card" id="loc-enoch">
+            <h3>Enoch, UT</h3>
+            <div class="loc-row"><span>Temp</span><span id="enoch-temp" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Condition</span><span id="enoch-cond" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Wind</span><span id="enoch-wind" class="loading">Loading…</span></div>
+            <div id="enoch-error" class="error is-hidden"></div>
+          </div>
+          <div class="loc-card" id="loc-cowley">
+            <h3>Cowley, WY</h3>
+            <div class="loc-row"><span>Temp</span><span id="cowley-temp" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Condition</span><span id="cowley-cond" class="loading">Loading…</span></div>
+            <div class="loc-row"><span>Wind</span><span id="cowley-wind" class="loading">Loading…</span></div>
+            <div id="cowley-error" class="error is-hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hourly (12 hours) -->
+      <section class="panel" aria-labelledby="hourly-title">
+        <div class="section-title">
+          <h2 id="hourly-title">Next 12 Hours (Hourly)</h2>
+          <div class="legend-note">Temperature (°F) and Precipitation (%)</div>
+        </div>
+
+        <div class="chart-holder" aria-describedby="hourly-title">
+          <canvas id="hourlyCombinedChart" height="180"
+                  aria-label="12-hour temperature and precipitation line chart"></canvas>
+        </div>
+
+        <div id="hourly-error" class="error is-hidden"></div>
+      </section>
+
+      <!-- Extended forecast -->
+      <section class="panel" aria-labelledby="extended-title">
+        <div class="section-title">
+          <h2 id="extended-title">Extended Forecast</h2>
+          <div class="legend-note">Day, Daytime High, Daytime Conditions, Overnight Low, Overnight Conditions</div>
+        </div>
+
+        <table aria-label="Extended forecast table">
+          <thead>
+            <tr>
+              <th scope="col">Day</th>
+              <th scope="col">Daytime High</th>
+              <th scope="col">Daytime Conditions</th>
+              <th scope="col">Overnight Low</th>
+              <th scope="col">Overnight Conditions</th>
+            </tr>
+          </thead>
+          <tbody id="extendedRowsTbody"><!-- rows injected --></tbody>
+        </table>
+
+        <div id="extended-error" class="error is-hidden"></div>
+      </section>
+    </main>
+
+    <footer>
+      Data: <a href="https://www.weather.gov/documentation/services-web-api">Weather.gov API</a>.
+      Primary coordinates: 30.54879530015167, -97.62424544848307 (Round Rock, TX).
+    </footer>
+  </div>
+
+  <!-- Third-party libs with pinned versions; add SRI when deploying -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0" crossorigin="anonymous"></script>
+  <script src="./assets/app.js" type="module"></script>
+</body>
+</html>
